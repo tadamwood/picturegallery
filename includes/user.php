@@ -1,24 +1,53 @@
 <?php
 
-require_once('database.php');
+require_once(LIB_PATH.DS.'database.php');
 
-class User {
+class User extends DatabaseObject{
 
+	protected static $table_name="users";
 	public $id;
 	public $username;
 	public $password;
 	public $first_name;
 	public $last_name;
 
+	//checks if the first and last name are set then returns the values
+	public function full_name() {
+		if(isset($this->first_name) && isset($this->last_name)) {
+			return $this->first_name . " " . $this->last_name;
+		} else {
+			return "";
+		}
+	}
+
+	public static function authenticate($username="", $password="") {
+		global $db;
+		$username = $db->escape_value($username);
+		$passwprd = $db->escape_value($password);
+
+		$sql = "SELECT * FROM users WHERE username = '{$username}' AND password = '{$password}' LIMIT 1";
+		/*$sql .= "WHERE username = '{$username}'";
+		$sql .= "AND password = '{$password}'";
+		$sql .= "LIMIT 1";*/
+
+		//can the user be found?
+		$result_array = self::find_by_sql($sql);
+		//checking to see if the array is empty
+		//array shift will shift an element off the beginning of an array
+		return !empty($result_array) ? array_shift($result_array) : false;
+	}
+
+	//Common Database Methods
+
 	//static makes it a class method
 	public static function find_all() {
-		return self::find_by_sql("SELECT * FROM users");
+		return self::find_by_sql("SELECT * FROM ".self::$table_name);
 	}
 
 	//used to call one instance
 	public static function find_by_id($id=0) {
 		global $db;
-		$result_array = self::find_by_sql("SELECT * FROM users WHERE id={$id} LIMIT 1");
+		$result_array = self::find_by_sql("SELECT * FROM ".self::$table_name." WHERE id={$id} LIMIT 1");
 		//checking to see if the array is empty
 		//array shift will shift an element off the beginning of an array
 		return !empty($result_array) ? array_shift($result_array) : false;
@@ -34,15 +63,6 @@ class User {
 			$object_array[] = self::instantiate($row);
 		}
 		return $object_array;
-	}
-
-	//checks if the first and last name are set then returns the values
-	public function full_name() {
-		if(isset($this->first_name) && isset($this->last_name)) {
-			return $this->first_name . " " . $this->last_name;
-		} else {
-			return "";
-		}
 	}
 
 	private static function instantiate($record) {
