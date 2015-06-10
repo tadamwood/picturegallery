@@ -50,6 +50,10 @@ a {
 	padding:2em;
 }
 
+.img_size {
+	max-width:80%;
+}
+
 #footer {
 	height:2em;
 	padding:1em;

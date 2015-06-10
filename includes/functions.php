@@ -55,4 +55,10 @@
 		}
 	}
 
+	function datetime_to_text($datetime="") {
+		//converts to a timestamp
+		$unixdatetime = strtotime($datetime);
+		return strftime("%B %d, %Y at %I:%M %p", $unixdatetime);
+	}
+
 ?>

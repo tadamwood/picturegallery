@@ -4,7 +4,14 @@
 
 $logfile = SITE_ROOT.DS.'logs'.DS.'log.txt';
 
-
+ if($_GET['clear'] == 'true') {
+ 	//writes to the log file/ puts nothing in it
+	file_put_contents($logfile, '');
+	//Add the first log entry
+	log_action('Logs Cleared', "by User ID {$session->user_id}");
+	//redirect to the same page so the url won't have "clear=true"
+	redirect_to('logfile.php');
+ }
 
  ?>
 
@@ -17,14 +24,6 @@ $logfile = SITE_ROOT.DS.'logs'.DS.'log.txt';
  <p><a href="logfile.php?clear=true">Clear log file</a></p>
 
  <?php 
-
- if($_GET["clear"] == "true") {
-	file_put_contents($logfile, '');
-	//Add the first log entry
-	log_action('Logs Cleared', "by User ID {$session->user_id}");
-	//redirect to the same page so the url won't have "clear=true"
-	redirect_to('logfile.php');
-}
 
  	if (file_exists($logfile) && is_readable($logfile) && $handle = fopen($logfile, 'r')) {
  		echo "<ul class=\"log-entries\">";

@@ -1,46 +1,41 @@
 <?php
 
-require_once(LIB_PATH.DS.'database.php');
+	require_once(LIB_PATH.DS.'database.php');
 
-class User extends DatabaseObject{
+	class Comment {
 
-	protected static $table_name="users";
-	protected static $db_fields = array('id', 'username', 'password', 'first_name', 'last_name');
+	protected static $table_name="comments";
+	protected static $db_fields = array('id', 'photograph_id', 'created', 'author', 'body');
 	public $id;
-	public $username;
-	public $password;
-	public $first_name;
-	public $last_name;
+	public $photograph_id;
+	public $created;
+	public $author;
+	public $body;
 
-	//checks if the first and last name are set then returns the values
-	public function full_name() {
-		if(isset($this->first_name) && isset($this->last_name)) {
-			return $this->first_name . " " . $this->last_name;
+
+	//makes a comment
+	public static function make($photo_id, $author="Anonymous", $body="") {
+		if(!empty($photo_id) && !empty($author) && !empty($body)) {
+			$comment = new Comment();
+			$comment->photograph_id = (int)$photo_id;
+			$comment->created = strftime("%Y-%m-%d %H:%M:%S", time());
+			$comment->author = $author;
+			$comment->body = $body;
+			return $comment;
 		} else {
-			return "";
+			return false;
 		}
 	}
 
-	public static function authenticate($username="", $password="") {
+	public static function find_comments_on($photo_id=0) {
 		global $db;
-		$username = $db->escape_value($username);
-		$passwprd = $db->escape_value($password);
-
-		$sql = "SELECT * FROM users WHERE username = '{$username}' AND password = '{$password}' LIMIT 1";
-		/*$sql .= "WHERE username = '{$username}'";
-		$sql .= "AND password = '{$password}'";
-		$sql .= "LIMIT 1";*/
-
-		//can the user be found?
-		$result_array = self::find_by_sql($sql);
-		//checking to see if the array is empty
-		//array shift will shift an element off the beginning of an array
-		return !empty($result_array) ? array_shift($result_array) : false;
+		$sql = "SELECT * FROM ".self::$table_name." WHERE photograph_id = ".$db->escape_value($photo_id)." ORDER BY created ASC";
+		return self::find_by_sql($sql);
 	}
 
 	//Common Database Methods
 
-	//static makes it a class method
+		//static makes it a class method
 	public static function find_all() {
 		return self::find_by_sql("SELECT * FROM ".self::$table_name);
 	}
@@ -48,7 +43,7 @@ class User extends DatabaseObject{
 	//used to call one instance
 	public static function find_by_id($id=0) {
 		global $db;
-		$result_array = self::find_by_sql("SELECT * FROM ".self::$table_name." WHERE id={$id} LIMIT 1");
+		$result_array = self::find_by_sql("SELECT * FROM ".self::$table_name." WHERE id=".$db->escape_value($id)." LIMIT 1");
 		//checking to see if the array is empty
 		//array shift will shift an element off the beginning of an array
 		return !empty($result_array) ? array_shift($result_array) : false;
@@ -89,7 +84,7 @@ class User extends DatabaseObject{
 	private function has_attribute($attribute) {
 		//get_object_vars returns an associative array with all attributes as the keys and their current values as value
 						//this refers to get_object_vars
-		$object_vars = $this->attributes();
+		$object_vars = get_object_vars($this);
 		//checks to see if the key exists
 
 		//returns true of false
@@ -125,7 +120,7 @@ class User extends DatabaseObject{
 	public function create() {
 		global $db;
 		// $attributes = $this->sanitized_attributes();
-		$sql = "INSERT INTO ".self::$table_name." (username, password, first_name, last_name) VALUES ('$this->username', '$this->password', '$this->first_name', '$this->last_name')";
+		$sql = "INSERT INTO ".self::$table_name." (photograph_id, created, author, body) VALUES ('$this->photograph_id', '$this->created', '$this->author', '$this->body')";
 		if($db->query($sql)) {
 			$this->id = $db->insert_id();
 			return true;
@@ -136,7 +131,7 @@ class User extends DatabaseObject{
 
 	public function update() {
 		global $db;
-		$sql = "UPDATE ".self::$table_name." SET username='$this->username', password='$this->password', first_name='$this->first_name', last_name='$this->last_name' WHERE id='$this->id'";
+		$sql = "UPDATE ".self::$table_name." SET photograph_id='$this->photograph_id', created='$this->created', author='$this->author', body='$this->body' WHERE id='$this->id'";
 		$db->query($sql);
 		return ($db->affected_rows() == 1) ? true : false;
 	}
@@ -148,7 +143,6 @@ class User extends DatabaseObject{
 		return ($db->affected_rows() == 1) ? true : false;
 	}
 
+	}
 
-}
-
-?>
+ ?>
